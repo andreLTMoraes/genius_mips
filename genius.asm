@@ -31,12 +31,32 @@ yellow:      	.word 0xffff00
 #
 ##########################################################################################
 
+main:
+	jal seq_aleatoria	# Chama "função" para definir a sequência aleatória
+	jal pinta_tela		# Chama "função" para pintar tela
+	
+	nop
+	nop
+	
+	add $a0, $zero, 3
+	jal pisca
+	add $a0, $zero, 1
+	jal pisca
+	add $a0, $zero, 2
+	jal pisca
+	add $a0, $zero, 2
+	jal pisca
+	
+	break
+
 ##########################################################################################
 #
 #	Sequência aleatória
 #
 ##########################################################################################
 
+seq_aleatoria:
+	add $t4, $zero, $ra
 word_um:
 	addi $t2, $zero, 3
 ini_um:
@@ -91,6 +111,8 @@ sorteia:
 	jr $ra
 	
 fim_seq:
+	add $ra, $zero, $t4
+	jr $ra
 
 ##########################################################################################
 #
@@ -98,10 +120,12 @@ fim_seq:
 #
 ##########################################################################################
 
-pinta_tela:	
-	lw $a0, qdr_1
+pinta_tela:
+	add $t4, $zero, $ra	# Salvando o endereço de retorno dessa função
+
+	lw $a0, qdr_1		
 	lw $a1, dark_red
-	jal pinta_quadrado
+	jal pinta_quadrado	# void pinta_quadrado(Word posição, Word cor)
 	
 	lw $a0, qdr_2
 	lw $a1, dark_green
@@ -114,9 +138,66 @@ pinta_tela:
 	lw $a0, qdr_4
 	lw $a1, dark_yellow
 	jal pinta_quadrado
-		
-	break
 	
+	add $ra, $zero, $t4	# Recuperando o endereço de retorno dessa função
+	jr $ra
+
+##########################################################################################
+#
+#	Pisca quadrado
+#
+##########################################################################################
+
+pisca:
+	add $t4, $zero, $ra	# Salvando o endereço de retorno dessa função
+	
+	add $t0, $zero, $a0
+	
+	beq $t0, 1, pisca_red	# Switch case com o argumento
+	beq $t0, 2, pisca_green
+	beq $t0, 3, pisca_blue
+	beq $t0, 4, pisca_yellow
+
+pisca_red:
+	lw $a0, qdr_1		
+	lw $a1, red
+	jal pinta_quadrado
+	lw $a0, qdr_1		
+	lw $a1, dark_red
+	jal pinta_quadrado
+	j default
+	
+pisca_green:
+	lw $a0, qdr_2		
+	lw $a1, green
+	jal pinta_quadrado
+	lw $a0, qdr_2		
+	lw $a1, dark_green
+	jal pinta_quadrado
+	j default
+	
+pisca_blue:
+	lw $a0, qdr_3		
+	lw $a1, blue
+	jal pinta_quadrado
+	lw $a0, qdr_3		
+	lw $a1, dark_blue
+	jal pinta_quadrado
+	j default
+	
+pisca_yellow:
+	lw $a0, qdr_4		
+	lw $a1, yellow
+	jal pinta_quadrado
+	lw $a0, qdr_4		
+	lw $a1, dark_yellow
+	jal pinta_quadrado
+	j default
+
+default:
+	add $ra, $zero, $t4	# Recuperando o endereço de retorno dessa função
+	jr $ra
+		
 ##########################################################################################
 #
 #	Pinta quadrado
@@ -127,10 +208,10 @@ pinta_quadrado:
 	add $s2, $zero, $a0	# posicao da primeira linha
 	addi $s3, $zero, 49	# largura da primeira linha horizontal
 	addi $t0, $zero, 49	# numero de linhas
-	add $a2, $zero,  $a1	# cor da linha
+	add $t1, $zero,  $a1	# cor da linha
 	
 linha:
-	sw $a2, bitmap_address($s2)
+	sw $t1, bitmap_address($s2)
 	addi $s2, $s2, 4 #muda para a proxima posicao do bitmap
 	subi $s3, $s3, 1 #subitrai contador de largura
 	beq $s3, $zero, prox_linha #verifica fim
