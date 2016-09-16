@@ -1,4 +1,4 @@
-O utiliza o Bitmap Display do MARS nas dimensões 128x128.
+O projeto utiliza o Bitmap Display do MARS nas dimensões 128x128.
 
 É gerada uma sequência aleatória de 20 bytes que deve ser
 apresentada gradualmente e repetida pelo jogador.

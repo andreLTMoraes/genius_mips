@@ -1,18 +1,20 @@
 .data
-#inicialização do bitmap
+# Inicialização do bitmap e array
 bitmap_address:   .space 0x20000
 array_seq: .space 0x14
 
-#posicao no bitmap
+# Frases
+msg_ini: .asciiz "Vamos começar, acerte a sequência\n"
+msg_prox: .asciiz "Certo!! Mais um...\n"
+msg_err: .asciiz "Errou!! Seu máximo foi de: "
+
+# Posicao no bitmap
 qdr_1:	.word 0x001424
 qdr_2:	.word 0x001510
 qdr_3:	.word 0x008A24
 qdr_4:	.word 0x008B10
 
-# cores
-black:      	.word 0x0
-white:      	.word 0xffffff
-
+# Cores
 dark_red:      	.word 0x330000
 dark_green:     .word 0x003300
 dark_blue:	.word 0x000033
@@ -38,6 +40,7 @@ main:
 	nop
 	nop
 	
+	
 	add $a0, $zero, 3
 	jal pisca
 	add $a0, $zero, 1
@@ -47,8 +50,38 @@ main:
 	add $a0, $zero, 2
 	jal pisca
 	
+	li  $v0, 4
+	la $a0, msg_ini
+	syscall
+	
 	break
 
+##########################################################################################
+#
+#	Apresentar Sequência
+#
+##########################################################################################
+
+apresentar_sequencia:
+	#add $t8, $zero, $ra
+	
+	#addi $t0, $zero, $zero
+	#addi $t1, $zero, 3	# Deslocamento do array
+	#addi $t2, $zero, $a0	# T2 - Nº da rodada
+	#addi $t3, $zero, $zero	# T3 - Qtd já apresentada
+
+
+	#sub $t1, $t1, $t0
+	#lb $t4, array_seq($t1)
+	#add $a0, $zero, $t4
+	#jal pisca
+	#addi $t3, $t3, 1
+	#beq $t3, $t2, fim_apres
+
+fim_apres:
+	#add $ra, $zero, $t8
+	#jr $ra
+	
 ##########################################################################################
 #
 #	Sequência aleatória
@@ -56,7 +89,7 @@ main:
 ##########################################################################################
 
 seq_aleatoria:
-	add $t4, $zero, $ra
+	add $t8, $zero, $ra
 word_um:
 	addi $t2, $zero, 3
 ini_um:
@@ -111,7 +144,7 @@ sorteia:
 	jr $ra
 	
 fim_seq:
-	add $ra, $zero, $t4
+	add $ra, $zero, $t8
 	jr $ra
 
 ##########################################################################################
@@ -121,7 +154,7 @@ fim_seq:
 ##########################################################################################
 
 pinta_tela:
-	add $t4, $zero, $ra	# Salvando o endereço de retorno dessa função
+	add $t8, $zero, $ra	# Salvando o endereço de retorno dessa função
 
 	lw $a0, qdr_1		
 	lw $a1, dark_red
@@ -139,7 +172,7 @@ pinta_tela:
 	lw $a1, dark_yellow
 	jal pinta_quadrado
 	
-	add $ra, $zero, $t4	# Recuperando o endereço de retorno dessa função
+	add $ra, $zero, $t8	# Recuperando o endereço de retorno dessa função
 	jr $ra
 
 ##########################################################################################
@@ -149,7 +182,7 @@ pinta_tela:
 ##########################################################################################
 
 pisca:
-	add $t4, $zero, $ra	# Salvando o endereço de retorno dessa função
+	add $t8, $zero, $ra	# Salvando o endereço de retorno dessa função
 	
 	add $t0, $zero, $a0
 	
@@ -159,43 +192,91 @@ pisca:
 	beq $t0, 4, pisca_yellow
 
 pisca_red:
+	addi $v0, $zero, 31
+	addi $a0, $zero, 60
+	addi $a1, $zero, 1000
+	addi $a2, $zero, 1
+	addi $a3, $zero, 100
+	syscall
 	lw $a0, qdr_1		
 	lw $a1, red
 	jal pinta_quadrado
+	addi $v0, $zero, 32
+	addi $a0, $zero, 500
+	syscall
 	lw $a0, qdr_1		
 	lw $a1, dark_red
 	jal pinta_quadrado
+	addi $v0, $zero, 32
+	addi $a0, $zero, 500
+	syscall
 	j default
 	
 pisca_green:
+	addi $v0, $zero, 31
+	addi $a0, $zero, 62
+	addi $a1, $zero, 1000
+	addi $a2, $zero, 1
+	addi $a3, $zero, 100
+	syscall
 	lw $a0, qdr_2		
 	lw $a1, green
 	jal pinta_quadrado
+	addi $v0, $zero, 32
+	addi $a0, $zero, 500
+	syscall
 	lw $a0, qdr_2		
 	lw $a1, dark_green
 	jal pinta_quadrado
+	addi $v0, $zero, 32
+	addi $a0, $zero, 500
+	syscall
 	j default
 	
 pisca_blue:
+	addi $v0, $zero, 31
+	addi $a0, $zero, 64
+	addi $a1, $zero, 1000
+	addi $a2, $zero, 1
+	addi $a3, $zero, 100
+	syscall
 	lw $a0, qdr_3		
 	lw $a1, blue
 	jal pinta_quadrado
+	addi $v0, $zero, 32
+	addi $a0, $zero, 500
+	syscall
 	lw $a0, qdr_3		
 	lw $a1, dark_blue
 	jal pinta_quadrado
+	addi $v0, $zero, 32
+	addi $a0, $zero, 500
+	syscall
 	j default
 	
 pisca_yellow:
+	addi $v0, $zero, 31
+	addi $a0, $zero, 65
+	addi $a1, $zero, 1000
+	addi $a2, $zero, 1
+	addi $a3, $zero, 100
+	syscall
 	lw $a0, qdr_4		
 	lw $a1, yellow
 	jal pinta_quadrado
+	addi $v0, $zero, 32
+	addi $a0, $zero, 500
+	syscall
 	lw $a0, qdr_4		
 	lw $a1, dark_yellow
 	jal pinta_quadrado
+	addi $v0, $zero, 32
+	addi $a0, $zero, 500
+	syscall
 	j default
 
 default:
-	add $ra, $zero, $t4	# Recuperando o endereço de retorno dessa função
+	add $ra, $zero, $t8	# Recuperando o endereço de retorno dessa função
 	jr $ra
 		
 ##########################################################################################
@@ -212,9 +293,9 @@ pinta_quadrado:
 	
 linha:
 	sw $t1, bitmap_address($s2)
-	addi $s2, $s2, 4 #muda para a proxima posicao do bitmap
-	subi $s3, $s3, 1 #subitrai contador de largura
-	beq $s3, $zero, prox_linha #verifica fim
+	addi $s2, $s2, 4 	# muda para a proxima posicao do bitmap
+	subi $s3, $s3, 1 	# subitrai contador de largura
+	beq $s3, $zero, prox_linha # verifica fim
 	j linha
 
 prox_linha:
