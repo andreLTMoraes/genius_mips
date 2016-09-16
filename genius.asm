@@ -40,15 +40,17 @@ main:
 	nop
 	nop
 	
+	add $a0, $zero, 20	# Quantidade de cores mostradas
+	jal apresentar_sequencia
 	
-	add $a0, $zero, 3
-	jal pisca
-	add $a0, $zero, 1
-	jal pisca
-	add $a0, $zero, 2
-	jal pisca
-	add $a0, $zero, 2
-	jal pisca
+	#add $a0, $zero, 3
+	#jal pisca
+	#add $a0, $zero, 1
+	#jal pisca
+	#add $a0, $zero, 4
+	#jal pisca
+	#add $a0, $zero, 2
+	#jal pisca
 	
 	li  $v0, 4
 	la $a0, msg_ini
@@ -63,24 +65,74 @@ main:
 ##########################################################################################
 
 apresentar_sequencia:
-	#add $t8, $zero, $ra
+	add $t8, $zero, $ra
 	
-	#addi $t0, $zero, $zero
-	#addi $t1, $zero, 3	# Deslocamento do array
-	#addi $t2, $zero, $a0	# T2 - Nº da rodada
-	#addi $t3, $zero, $zero	# T3 - Qtd já apresentada
+	add $s0, $zero, $a0	# S0 - Nº da rodada
+	add $t2, $zero, $zero	# T2 - Qtd já apresentada
 
+pres_wrd_um:
+	addi $s1, $zero, 3
+pres_ini_um:
+	lb $t3, array_seq($s1)
+	add $a0, $zero, $t3
+	jal pisca
+	addi $t2, $t2, 1
+	beq $t2, $s0, fim_apres
+	subi $s1, $s1, 1
+	bltz $s1, pres_wrd_dois
+	j pres_ini_um
+	
+pres_wrd_dois:
+	addi $s1, $zero, 3
+pres_ini_dois:
+	lb $t3, array_seq + 4($s1)
+	add $a0, $zero, $t3
+	jal pisca
+	addi $t2, $t2, 1
+	beq $t2, $s0, fim_apres
+	subi $s1, $s1, 1
+	bltz $s1, pres_wrd_tres
+	j pres_ini_dois
 
-	#sub $t1, $t1, $t0
-	#lb $t4, array_seq($t1)
-	#add $a0, $zero, $t4
-	#jal pisca
-	#addi $t3, $t3, 1
-	#beq $t3, $t2, fim_apres
+pres_wrd_tres:
+	addi $s1, $zero, 3
+pres_ini_tres:
+	lb $t3, array_seq + 8($s1)
+	add $a0, $zero, $t3
+	jal pisca
+	addi $t2, $t2, 1
+	beq $t2, $s0, fim_apres
+	subi $s1, $s1, 1
+	bltz $s1, pres_wrd_quatro
+	j pres_ini_tres
 
+pres_wrd_quatro:
+	addi $s1, $zero, 3
+pres_ini_quatro:
+	lb $t3, array_seq + 12($s1)
+	add $a0, $zero, $t3
+	jal pisca
+	addi $t2, $t2, 1
+	beq $t2, $s0, fim_apres
+	subi $s1, $s1, 1
+	bltz $s1, pres_wrd_cinco
+	j pres_ini_quatro
+	
+pres_wrd_cinco:
+	addi $s1, $zero, 3
+pres_ini_cinco:
+	lb $t3, array_seq + 16($s1)
+	add $a0, $zero, $t3
+	jal pisca
+	addi $t2, $t2, 1
+	beq $t2, $s0, fim_apres
+	subi $s1, $s1, 1
+	bltz $s1, fim_apres
+	j pres_ini_cinco
+	
 fim_apres:
-	#add $ra, $zero, $t8
-	#jr $ra
+	add $ra, $zero, $t8
+	jr $ra
 	
 ##########################################################################################
 #
@@ -182,7 +234,7 @@ pinta_tela:
 ##########################################################################################
 
 pisca:
-	add $t8, $zero, $ra	# Salvando o endereço de retorno dessa função
+	add $t9, $zero, $ra	# Salvando o endereço de retorno dessa função
 	
 	add $t0, $zero, $a0
 	
@@ -202,13 +254,13 @@ pisca_red:
 	lw $a1, red
 	jal pinta_quadrado
 	addi $v0, $zero, 32
-	addi $a0, $zero, 500
+	addi $a0, $zero, 700
 	syscall
 	lw $a0, qdr_1		
 	lw $a1, dark_red
 	jal pinta_quadrado
 	addi $v0, $zero, 32
-	addi $a0, $zero, 500
+	addi $a0, $zero, 300
 	syscall
 	j default
 	
@@ -223,13 +275,13 @@ pisca_green:
 	lw $a1, green
 	jal pinta_quadrado
 	addi $v0, $zero, 32
-	addi $a0, $zero, 500
+	addi $a0, $zero, 700
 	syscall
 	lw $a0, qdr_2		
 	lw $a1, dark_green
 	jal pinta_quadrado
 	addi $v0, $zero, 32
-	addi $a0, $zero, 500
+	addi $a0, $zero, 300
 	syscall
 	j default
 	
@@ -244,13 +296,13 @@ pisca_blue:
 	lw $a1, blue
 	jal pinta_quadrado
 	addi $v0, $zero, 32
-	addi $a0, $zero, 500
+	addi $a0, $zero, 700
 	syscall
 	lw $a0, qdr_3		
 	lw $a1, dark_blue
 	jal pinta_quadrado
 	addi $v0, $zero, 32
-	addi $a0, $zero, 500
+	addi $a0, $zero, 300
 	syscall
 	j default
 	
@@ -265,18 +317,18 @@ pisca_yellow:
 	lw $a1, yellow
 	jal pinta_quadrado
 	addi $v0, $zero, 32
-	addi $a0, $zero, 500
+	addi $a0, $zero, 700
 	syscall
 	lw $a0, qdr_4		
 	lw $a1, dark_yellow
 	jal pinta_quadrado
 	addi $v0, $zero, 32
-	addi $a0, $zero, 500
+	addi $a0, $zero, 300
 	syscall
 	j default
 
 default:
-	add $ra, $zero, $t8	# Recuperando o endereço de retorno dessa função
+	add $ra, $zero, $t9	# Recuperando o endereço de retorno dessa função
 	jr $ra
 		
 ##########################################################################################
