@@ -4,9 +4,10 @@ bitmap_address:   .space 0x20000
 array_seq: .space 0x14
 
 # Frases
-msg_ini: .asciiz "Vamos começar, acerte a sequência\n"
-msg_prox: .asciiz "Certo!! Mais um...\n"
-msg_err: .asciiz "Errou!! Seu máximo foi de: "
+msg_ini: .asciiz "\nAcerte a sequência. Precione qualquer tecla para começar\n"
+msg_prox: .asciiz "\n\n\n\n\n\nCerto!! Mais um...\n"
+msg_err: .asciiz "\nErrou!! Seu máximo foi de: "
+msg_ter: .asciiz "\n\n\n\Pouxa!! terminou tudim!!"
 
 # Posicao no bitmap
 qdr_1:	.word 0x001424
@@ -36,28 +37,183 @@ yellow:      	.word 0xffff00
 main:
 	jal seq_aleatoria	# Chama "função" para definir a sequência aleatória
 	jal pinta_tela		# Chama "função" para pintar tela
-	
-	nop
-	nop
-	
-	add $a0, $zero, 20	# Quantidade de cores mostradas
-	jal apresentar_sequencia
-	
-	#add $a0, $zero, 3
-	#jal pisca
-	#add $a0, $zero, 1
-	#jal pisca
-	#add $a0, $zero, 4
-	#jal pisca
-	#add $a0, $zero, 2
-	#jal pisca
+	addi $s7, $zero, 1
 	
 	li  $v0, 4
-	la $a0, msg_ini
+	la $a0, msg_ini		# Acerte a sequência. Precione qualquer tecla para começar
 	syscall
-	
-	break
+	li $v0, 12       
+  	syscall
 
+jogar:	
+	add $a0, $zero, $s7
+	jal apresentar_sequencia
+	
+	add $a0, $zero, $s7
+	jal conferir_sequencia
+	beq $v0, 2, terminou
+	beq $v0, $zero, acertou
+	li  $v0, 4
+	la $a0, msg_err		# Errou!! Seu máximo foi de:
+	syscall
+	li  $v0, 1
+	add $a0, $zero, $s7
+	syscall
+	j fim_jogo
+	
+acertou:
+	li  $v0, 4
+	la $a0, msg_prox
+	syscall
+	addi $v0, $zero, 32
+	addi $a0, $zero, 1500
+	syscall
+	addi $s7, $s7, 1
+	j jogar
+	
+terminou:
+	li  $v0, 4
+	la $a0, msg_ter		# Acerte a sequência. Precione qualquer tecla para começar
+	syscall
+fim_jogo:	
+	li $v0, 10 # termina programa se teclar 0
+	syscall
+
+##########################################################################################
+#
+#	Conferir Sequência
+#
+##########################################################################################
+
+conferir_sequencia:
+	add $t8, $zero, $ra
+	
+	add $s0, $zero, $a0	# S0 - Nº da rodada
+	add $t2, $zero, $zero	# T2 - Qtd já apresentada
+
+conf_wrd_um:
+	addi $s1, $zero, 3
+conf_ini_um:
+	lb $t3, array_seq($s1)
+	li $v0, 12       
+  	syscall
+  	add $a0, $zero, $v0
+  	jal converte
+  	bne $v0, $t3, fim_conf_err
+	add $a0, $zero, $v0
+	jal pisca
+	addi $t2, $t2, 1
+	beq $t2, $s0, fim_conf
+	subi $s1, $s1, 1
+	bltz $s1, conf_wrd_dois
+	j conf_ini_um
+
+conf_wrd_dois:
+	addi $s1, $zero, 3
+conf_ini_dois:
+	lb $t3, array_seq($s1)
+	li $v0, 12       
+  	syscall
+  	add $a0, $zero, $v0
+  	jal converte
+  	bne $v0, $t3, fim_conf_err
+	add $a0, $zero, $v0
+	jal pisca
+	addi $t2, $t2, 1
+	beq $t2, $s0, fim_conf
+	subi $s1, $s1, 1
+	bltz $s1, conf_wrd_tres
+	j conf_ini_dois
+  	
+conf_wrd_tres:
+	addi $s1, $zero, 3
+conf_ini_tres:
+	lb $t3, array_seq($s1)
+	li $v0, 12       
+  	syscall
+  	add $a0, $zero, $v0
+  	jal converte
+  	bne $v0, $t3, fim_conf_err
+	add $a0, $zero, $v0
+	jal pisca
+	addi $t2, $t2, 1
+	beq $t2, $s0, fim_conf
+	subi $s1, $s1, 1
+	bltz $s1, conf_wrd_quatro
+	j conf_ini_tres
+	
+conf_wrd_quatro:
+	addi $s1, $zero, 3
+conf_ini_quatro:
+	lb $t3, array_seq($s1)
+	li $v0, 12       
+  	syscall
+  	add $a0, $zero, $v0
+  	jal converte
+  	bne $v0, $t3, fim_conf_err
+	add $a0, $zero, $v0
+	jal pisca
+	addi $t2, $t2, 1
+	beq $t2, $s0, fim_conf
+	subi $s1, $s1, 1
+	bltz $s1, conf_wrd_cinco
+	j conf_ini_quatro
+	
+conf_wrd_cinco:
+	addi $s1, $zero, 3
+conf_ini_cinco:
+	lb $t3, array_seq($s1)
+	li $v0, 12       
+  	syscall
+  	add $a0, $zero, $v0
+  	jal converte
+  	bne $v0, $t3, fim_conf_err
+	add $a0, $zero, $v0
+	jal pisca
+	addi $t2, $t2, 1
+	beq $t2, $s0, fim_conf
+	subi $s1, $s1, 1
+	bltz $s1, fim_conf_seq
+	j conf_ini_cinco
+	
+converte:
+	beq $a0, 0x31, ret_um	# Switch case com o argumento
+	beq $a0, 0x32, ret_dois
+	beq $a0, 0x33, ret_tres
+	beq $a0, 0x34, ret_quatro
+
+ret_um:
+	addi $v0, $zero, 1
+	jr $ra
+	
+ret_dois:
+	addi $v0, $zero, 2
+	jr $ra
+	
+ret_tres:
+	addi $v0, $zero, 3
+	jr $ra
+	
+ret_quatro:
+	addi $v0, $zero, 4
+	jr $ra
+
+fim_conf:
+	addi $v0, $zero, 0
+	add $ra, $zero, $t8
+	jr $ra
+
+fim_conf_err:
+	addi $v0, $zero, 1
+	add $ra, $zero, $t8
+	jr $ra
+	
+fim_conf_seq:
+	addi $v0, $zero, 2
+	add $ra, $zero, $t8
+	jr $ra
+		
+	
 ##########################################################################################
 #
 #	Apresentar Sequência
